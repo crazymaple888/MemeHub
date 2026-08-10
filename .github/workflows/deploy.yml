@@ -78,11 +78,12 @@ jobs:
           rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" app/dist/ root@123.56.254.175:/clouddream/www/MemeHub/
           echo "frontend deployed"
 
-      # 7. 部署后端代码：打包 server/ 传到服务器并重启容器
+      # 7. 部署后端代码：打包 server/ 和 scripts/ 传到服务器并重启容器
       #    排除 node_modules/data/uploads/.git，只传代码；重启 meme-server 容器让新代码生效
+      #    scripts/ 必须一起同步（爬虫脚本在仓库根目录，不随 server/ 部署）
       - name: Deploy server code and restart
         run: |
-          tar --exclude=node_modules --exclude=data --exclude=uploads --exclude=.git -C server -cf - . | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new root@123.56.254.175 "tar -C /clouddream/MemeHub/server -xf - && docker restart meme-server"
+          (tar --exclude=node_modules --exclude=data --exclude=uploads --exclude=.git -C server -cf - . ; tar --exclude=node_modules -C scripts -cf - .) | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new root@123.56.254.175 "tar -C /clouddream/MemeHub/server -xf - && tar -C /clouddream/MemeHub/scripts -xf - && docker restart meme-server"
           echo "server deployed and restarted"
 
       # 8. 部署后增量更新数据
