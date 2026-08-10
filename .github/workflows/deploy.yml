@@ -26,21 +26,19 @@ jobs:
         env:
           EXPO_PUBLIC_API_URL: http://123.56.254.175
 
-      - name: Deploy frontend to server
-        uses: easingthemes/ssh-deploy@v5.1.0
-        with:
-          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          ARGS: "-rlgoDzvc -i --delete"
-          SOURCE: "app/dist/"
-          REMOTE_HOST: "123.56.254.175"
-          REMOTE_USER: "root"
-          TARGET: "/clouddream/www/MemeHub"
-
-      - name: Deploy server code and restart
+      - name: Prepare SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H 123.56.254.175 >> ~/.ssh/known_hosts 2>/dev/null
-          tar --exclude=node_modules --exclude=data --exclude=uploads --exclude=.git -C server -cf - . | ssh -i ~/.ssh/deploy_key root@123.56.254.175 "tar -C /clouddream/MemeHub/server -xf - && docker restart meme-server"
+
+      - name: Deploy frontend to server
+        run: |
+          rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" app/dist/ root@123.56.254.175:/clouddream/www/MemeHub/
+          echo "frontend deployed"
+
+      - name: Deploy server code and restart
+        run: |
+          tar --exclude=node_modules --exclude=data --exclude=uploads --exclude=.git -C server -cf - . | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes root@123.56.254.175 "tar -C /clouddream/MemeHub/server -xf - && docker restart meme-server"
           echo "server deployed and restarted"
