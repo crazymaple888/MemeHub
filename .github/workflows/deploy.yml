@@ -29,12 +29,8 @@ jobs:
       - name: Prepare SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "secret length: $(printf '%s' "${{ secrets.SERVER_SSH_KEY }}" | wc -c)"
-          echo "secret head: $(printf '%s' "${{ secrets.SERVER_SSH_KEY }}" | head -c 20)"
           echo "${{ secrets.SERVER_SSH_KEY }}" | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          echo "key head: $(head -1 ~/.ssh/deploy_key)"
-          echo "key lines: $(wc -l < ~/.ssh/deploy_key)"
           echo "ssh key ready"
 
       - name: Deploy frontend to server
