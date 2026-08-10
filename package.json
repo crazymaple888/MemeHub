@@ -1,0 +1,20 @@
+{
+  "name": "meme-site",
+  "private": true,
+  "workspaces": [
+    "app",
+    "server"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace meme-server",
+    "web": "npm run web --workspace app",
+    "build": "npm run build --workspace app",
+    "build:android": "npm run build:android --workspace app",
+    "build:ios": "npm run build:ios --workspace app",
+    "seed": "tsx scripts/seed/import-doutu.ts"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "sharp@0.33.5": true
+  }
+}
