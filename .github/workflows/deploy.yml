@@ -3,10 +3,18 @@ name: Deploy MemeHub
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '0 19 * * *'   # 北京时间凌晨 3 点自动更新数据
   workflow_dispatch:
+    inputs:
+      update_data:
+        description: '仅更新斗图数据(不重新构建)'
+        type: boolean
+        default: false
 
 jobs:
   build-and-deploy:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !github.event.inputs.update_data)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -42,3 +50,26 @@ jobs:
         run: |
           tar --exclude=node_modules --exclude=data --exclude=uploads --exclude=.git -C server -cf - . | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new root@123.56.254.175 "tar -C /clouddream/MemeHub/server -xf - && docker restart meme-server"
           echo "server deployed and restarted"
+
+  update-data:
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.update_data == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Pull new images and run seed on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new root@123.56.254.175 '
+            export PATH=/opt/nodejs/bin:$PATH
+            echo "=== 1. 更新数据源 ==="
+            cd /clouddream/MemeHub/.tmp/expr-clone && git pull 2>&1 | tail -2
+            echo "=== 2. 增量导入 ==="
+            cd /clouddream/MemeHub && node_modules/.bin/tsx scripts/seed/import-doutu.ts 2>&1 | tail -3
+            echo "=== 3. 验证 ==="
+            curl -s "http://127.0.0.1/api/memes?page=1&pageSize=1" | head -c 100
+          '
