@@ -29,16 +29,16 @@ jobs:
       - name: Prepare SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H 123.56.254.175 >> ~/.ssh/known_hosts 2>/dev/null
+          echo "ssh key ready"
 
       - name: Deploy frontend to server
         run: |
-          rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" app/dist/ root@123.56.254.175:/clouddream/www/MemeHub/
+          rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" app/dist/ root@123.56.254.175:/clouddream/www/MemeHub/
           echo "frontend deployed"
 
       - name: Deploy server code and restart
         run: |
-          tar --exclude=node_modules --exclude=data --exclude=uploads --exclude=.git -C server -cf - . | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes root@123.56.254.175 "tar -C /clouddream/MemeHub/server -xf - && docker restart meme-server"
+          tar --exclude=node_modules --exclude=data --exclude=uploads --exclude=.git -C server -cf - . | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new root@123.56.254.175 "tar -C /clouddream/MemeHub/server -xf - && docker restart meme-server"
           echo "server deployed and restarted"
