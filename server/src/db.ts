@@ -27,8 +27,9 @@ db.exec(`
     emotion     TEXT DEFAULT '',
     action      TEXT DEFAULT '',
     scene       TEXT DEFAULT '',
-    file_path   TEXT NOT NULL,
+    file_path   TEXT,
     thumb_path  TEXT,
+    image_url   TEXT,
     file_type   TEXT NOT NULL DEFAULT 'gif',
     width       INTEGER,
     height      INTEGER,
@@ -40,6 +41,14 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_memes_category ON memes(category_id);
   CREATE INDEX IF NOT EXISTS idx_memes_created ON memes(created_at DESC);
 `);
+
+// 迁移：为热链模式添加 image_url 列（旧库无此列时；新建库已包含）
+const cols = db.prepare("PRAGMA table_info(memes)").all() as {
+  name: string;
+}[];
+if (!cols.some((c) => c.name === "image_url")) {
+  db.exec("ALTER TABLE memes ADD COLUMN image_url TEXT");
+}
 
 export interface CategoryRow {
   id: number;
@@ -57,8 +66,9 @@ export interface MemeRow {
   emotion: string;
   action: string;
   scene: string;
-  file_path: string;
+  file_path: string | null;
   thumb_path: string | null;
+  image_url: string | null;
   file_type: string;
   width: number | null;
   height: number | null;

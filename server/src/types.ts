@@ -16,8 +16,9 @@ export interface Meme {
   emotion: string;
   action: string;
   scene: string;
-  file: string;
+  file: string | null;
   thumb: string | null;
+  imageUrl: string | null;
   fileType: string;
   width: number | null;
   height: number | null;

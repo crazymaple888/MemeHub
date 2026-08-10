@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "@/lib/api";
 import { downloadMeme } from "@/lib/download";
 import { toggleFavorite, isFavorite } from "@/lib/favorites";
-import { fileUrl } from "@/lib/types";
+import { imgSource } from "@/lib/types";
 
 export default function MemeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,7 +47,7 @@ export default function MemeDetailScreen() {
     if (!meme) return;
     setDownloading(true);
     try {
-      const res = await downloadMeme(meme.file, meme.title || "meme");
+      const res = await downloadMeme(meme, meme.title || "meme");
       Alert.alert(res.ok ? "成功" : "失败", res.message);
     } finally {
       setDownloading(false);
@@ -86,7 +86,7 @@ export default function MemeDetailScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.imageWrap}>
           <Image
-            source={fileUrl(meme.file)}
+            source={imgSource(meme)}
             style={styles.image}
             contentFit="contain"
             transition={200}

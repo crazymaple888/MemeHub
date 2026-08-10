@@ -13,8 +13,9 @@ function mapMeme(row: any): Meme {
     emotion: row.emotion ?? "",
     action: row.action ?? "",
     scene: row.scene ?? "",
-    file: row.file_path,
+    file: row.file_path ?? null,
     thumb: row.thumb_path ?? null,
+    imageUrl: row.image_url ?? null,
     fileType: row.file_type,
     width: row.width,
     height: row.height,
@@ -29,7 +30,8 @@ export const categoriesRouter = Router();
 categoriesRouter.get("/", (_req, res) => {
   const rows = db
     .prepare(
-      `SELECT c.*, COUNT(m.id) AS count, m.file_path AS cover
+      `SELECT c.*, COUNT(m.id) AS count,
+              COALESCE(m.image_url, m.file_path) AS cover
        FROM categories c
        LEFT JOIN memes m ON m.category_id = c.id
        GROUP BY c.id

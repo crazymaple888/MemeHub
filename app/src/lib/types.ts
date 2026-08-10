@@ -16,8 +16,9 @@ export interface Meme {
   emotion: string;
   action: string;
   scene: string;
-  file: string;
+  file: string | null;
   thumb: string | null;
+  imageUrl: string | null;
   fileType: string;
   width: number | null;
   height: number | null;
@@ -39,3 +40,6 @@ export const API_BASE =
 
 export const fileUrl = (p: string | null | undefined) =>
   p ? `${API_BASE}/files/${p}` : null;
+
+// 图片显示优先级：外部热链 > 本地文件
+export const imgSource = (meme: Meme) => meme.imageUrl ?? fileUrl(meme.file);

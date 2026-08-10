@@ -1,22 +1,25 @@
-import { Platform, Share } from "react-native";
+import { Platform } from "react-native";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { fileUrl } from "./types";
+import { fileUrl, type Meme } from "./types";
 
+// meme 可能来自外部热链（imageUrl）或本地上传（file）
 export async function downloadMeme(
-  filePath: string,
+  meme: Pick<Meme, "imageUrl" | "file">,
   title: string
 ): Promise<{ ok: boolean; message: string }> {
-  const url = fileUrl(filePath);
+  const url = meme.imageUrl ?? fileUrl(meme.file);
   if (!url) return { ok: false, message: "无下载地址" };
-  const fileName = filePath.split("/").pop() || "meme.gif";
+  const filePath = meme.file;
+  const ext = url.split(".").pop()?.split("?")[0] || "jpg";
+  const fileName = filePath?.split("/").pop() || `meme.${ext}`;
 
   if (Platform.OS === "web") {
     try {
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = title
-        ? `${title}.${fileName.split(".").pop()}`
+        ? `${title}.${ext}`
         : fileName;
       anchor.rel = "noopener";
       document.body.appendChild(anchor);
@@ -35,7 +38,7 @@ export async function downloadMeme(
 
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(dest.uri, {
-        mimeType: filePath.endsWith(".gif") ? "image/gif" : "image/png",
+        mimeType: ext === "gif" ? "image/gif" : "image/jpeg",
         dialogTitle: "保存表情包",
         UTI: "public.image",
       });

@@ -1,7 +1,6 @@
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,

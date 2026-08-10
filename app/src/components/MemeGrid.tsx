@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef } from "react";
+import { memo, useCallback } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -33,8 +33,6 @@ function MemeGrid({
 }: Props) {
   const { width } = useWindowDimensions();
   const router = useRouter();
-  const onLoadMoreRef = useRef(onLoadMore);
-  onLoadMoreRef.current = onLoadMore;
 
   const columnCount = width >= 1200 ? 6 : width >= 768 ? 4 : 2;
   const gutter = 8;
@@ -58,8 +56,8 @@ function MemeGrid({
 
   // endless scroll: load more when near the end
   const onEndReached = useCallback(() => {
-    if (hasMore && !loading) onLoadMoreRef.current();
-  }, [hasMore, loading]);
+    if (hasMore && !loading) onLoadMore();
+  }, [hasMore, loading, onLoadMore]);
 
   return (
     <FlatList

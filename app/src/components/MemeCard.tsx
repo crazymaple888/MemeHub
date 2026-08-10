@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
-import { fileUrl, type Meme } from "@/lib/types";
+import { imgSource, type Meme } from "@/lib/types";
 
 interface Props {
   meme: Meme;
@@ -15,8 +15,7 @@ function MemeCard({ meme, onPress, width, columnCount = 3 }: Props) {
   const { width: winW } = useWindowDimensions();
   const colW = columnCount >= 4 ? 220 : columnCount >= 3 ? 180 : 150;
   const cardW = width ?? Math.min(colW, Math.max(120, (winW - 48) / columnCount));
-  const thumb = fileUrl(meme.thumb) ?? fileUrl(meme.file);
-  const gif = fileUrl(meme.file);
+  const src = imgSource(meme);
 
   return (
     <Pressable
@@ -28,7 +27,7 @@ function MemeCard({ meme, onPress, width, columnCount = 3 }: Props) {
       ]}>
       <View style={styles.imageWrap}>
         <Image
-          source={gif}
+          source={src}
           style={[styles.image, { width: cardW, height: cardW }]}
           contentFit="contain"
           cachePolicy="memory-disk"

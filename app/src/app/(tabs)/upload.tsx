@@ -16,13 +16,10 @@ import {
 } from "react-native";
 
 import { api } from "@/lib/api";
-import { fileUrl } from "@/lib/types";
 
 export default function UploadScreen() {
   const router = useRouter();
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [fileName, setFileName] = useState("");
-  const [mime, setMime] = useState("image/gif");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -44,8 +41,6 @@ export default function UploadScreen() {
         mime: asset.mimeType ?? "image/gif",
       };
       setImageUri(asset.uri);
-      setFileName(asset.name ?? "");
-      setMime(asset.mimeType ?? "image/gif");
       return;
     }
 
@@ -63,8 +58,6 @@ export default function UploadScreen() {
     const name = asset.fileName ?? `upload.${asset.mimeType?.split("/")[1] ?? "gif"}`;
     pickedFileRef.current = { uri: asset.uri, name, mime: asset.mimeType ?? "image/gif" };
     setImageUri(asset.uri);
-    setFileName(name);
-    setMime(asset.mimeType ?? "image/gif");
   }, []);
 
   const submit = useCallback(async () => {

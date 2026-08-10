@@ -1,10 +1,25 @@
+# ============================================================
+# MemeHub 部署工作流
+# 作用：
+#   1. 代码推送到 main 时：自动构建前端 + 部署到服务器 + 重启后端
+#   2. 每天定时（北京时间凌晨 3 点）：自动增量爬取新斗图表情
+#   3. 支持手动触发（可选择"仅更新数据"）
+# 依赖：
+#   - GitHub Secret: SERVER_SSH_KEY（服务器 root 的 SSH 私钥，base64 编码）
+#   - 服务器 123.56.254.175 上已配置好部署目录与 meme-server 容器
+# ============================================================
+
 name: Deploy MemeHub
 
+# ---------- 触发条件 ----------
 on:
+  # 推送代码到 main 分支时触发完整部署
   push:
     branches: [main]
+  # 每天定时触发（仅更新数据）。cron 为 UTC 时间，19:00 UTC = 北京时间次日 03:00
   schedule:
-    - cron: '0 19 * * *'   # 北京时间凌晨 3 点自动更新数据
+    - cron: '0 19 * * *'
+  # 支持在 GitHub 页面手动触发
   workflow_dispatch:
     inputs:
       update_data:
@@ -13,27 +28,42 @@ on:
         default: false
 
 jobs:
+  # ============================================================
+  # 任务一：构建并部署（完整部署）
+  # 触发条件：
+  #   - 推送代码（push）
+  #   - 手动触发且未勾选"仅更新数据"
+  # ============================================================
   build-and-deploy:
+    # push 事件，或手动触发时未勾选 update_data，才执行本任务
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !github.event.inputs.update_data)
     runs-on: ubuntu-latest
     timeout-minutes: 25
+
     steps:
+      # 1. 拉取仓库代码到 CI 环境
       - uses: actions/checkout@v4
 
+      # 2. 配置 Node.js 24 环境（带 npm 缓存加速）
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
 
+      # 3. 安装依赖（按 package-lock.json 精确安装，跳过审计）
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      # 4. 构建前端静态产物（app/dist/）
+      #    注入生产环境的 API 地址，前端运行时用它请求后端
       - name: Build web app
         run: npm run build
         env:
           EXPO_PUBLIC_API_URL: http://123.56.254.175
 
+      # 5. 准备 SSH 密钥
+      #    从 GitHub Secrets 取出 base64 编码的私钥，还原为文件用于连接服务器
       - name: Prepare SSH key
         run: |
           mkdir -p ~/.ssh
@@ -41,35 +71,67 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           echo "ssh key ready"
 
+      # 6. 部署前端：把 app/dist/ 同步到服务器 Web 目录
+      #    rsync --delete 保证服务器上没有多余旧文件
       - name: Deploy frontend to server
         run: |
           rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" app/dist/ root@123.56.254.175:/clouddream/www/MemeHub/
           echo "frontend deployed"
 
+      # 7. 部署后端代码：打包 server/ 传到服务器并重启容器
+      #    排除 node_modules/data/uploads/.git，只传代码；重启 meme-server 容器让新代码生效
       - name: Deploy server code and restart
         run: |
           tar --exclude=node_modules --exclude=data --exclude=uploads --exclude=.git -C server -cf - . | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new root@123.56.254.175 "tar -C /clouddream/MemeHub/server -xf - && docker restart meme-server"
           echo "server deployed and restarted"
 
+      # 8. 部署后增量更新数据
+      #    在服务器上运行爬虫，抓取斗图啦新增的表情包（幂等：已存在的 image_url 自动跳过）
+      #    保证每次推送部署后，线上数据也同步到最新
+      - name: Update data after deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new root@123.56.254.175 '
+            export PATH=/opt/nodejs/bin:$PATH
+            echo "=== 增量爬取斗图表情 ==="
+            cd /clouddream/MemeHub && node_modules/.bin/tsx scripts/seed/scrape-doutu.ts 2>&1 | tail -5
+            echo "=== 重启服务使新数据生效 ==="
+            docker restart meme-server
+            echo "=== 验证 ==="
+            sleep 3
+            curl -s "http://127.0.0.1/api/memes?page=1&pageSize=1" | head -c 120
+          '
+
+  # ============================================================
+  # 任务二：仅更新数据（不重新构建前端）
+  # 触发条件：
+  #   - 每天定时（北京时间凌晨 3 点）
+  #   - 手动触发且勾选了"仅更新数据"
+  # ============================================================
   update-data:
+    # 定时事件，或手动触发时勾选 update_data，才执行本任务
     if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.update_data == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     steps:
+      # 1. 准备 SSH 密钥（同上）
       - name: Prepare SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SERVER_SSH_KEY }}" | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Pull new images and run seed on server
+      # 2. 在服务器上运行爬虫并重启服务
+      #    只更新数据库中的表情包数据，不触碰前端构建产物
+      - name: Run seed on server
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new root@123.56.254.175 '
             export PATH=/opt/nodejs/bin:$PATH
-            echo "=== 1. 更新数据源 ==="
-            cd /clouddream/MemeHub/.tmp/expr-clone && git pull 2>&1 | tail -2
-            echo "=== 2. 增量导入 ==="
-            cd /clouddream/MemeHub && node_modules/.bin/tsx scripts/seed/import-doutu.ts 2>&1 | tail -3
+            echo "=== 1. 爬取新斗图表情（只存 URL）==="
+            cd /clouddream/MemeHub && node_modules/.bin/tsx scripts/seed/scrape-doutu.ts 2>&1 | tail -5
+            echo "=== 2. 重启服务使数据生效 ==="
+            docker restart meme-server
             echo "=== 3. 验证 ==="
-            curl -s "http://127.0.0.1/api/memes?page=1&pageSize=1" | head -c 100
+            sleep 3
+            curl -s "http://127.0.0.1/api/memes?page=1&pageSize=1" | head -c 120
           '

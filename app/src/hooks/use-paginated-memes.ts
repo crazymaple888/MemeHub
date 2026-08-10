@@ -19,8 +19,8 @@ export function usePaginatedMemes({ category, query, tag, pageSize = 24 }: Optio
   const [error, setError] = useState<string | null>(null);
 
   const key = `${category ?? "all"}|${query ?? ""}|${tag ?? ""}`;
-  const keyRef = useRef(key);
-  const loadRef = useRef<() => void>(() => {});
+  // 记录上次已加载的过滤条件，条件变化时清空并重新加载
+  const loadedKeyRef = useRef<string | null>(null);
 
   const fetchPage = useCallback(
     async (pageNum: number, append: boolean) => {
@@ -47,20 +47,15 @@ export function usePaginatedMemes({ category, query, tag, pageSize = 24 }: Optio
     [category, query, tag, pageSize]
   );
 
-  // reset when filters change
+  // 过滤条件变化 或 首次挂载时：重置并加载第一页
   useEffect(() => {
-    if (keyRef.current === key) return;
-    keyRef.current = key;
+    if (loadedKeyRef.current === key) return;
+    loadedKeyRef.current = key;
     setMemes([]);
+    setTotalPages(1);
     fetchPage(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-
-  // initial load
-  useEffect(() => {
-    fetchPage(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // fetchPage 依赖 category/query/tag，条件变化时自动重新执行
+  }, [key, fetchPage]);
 
   const loadMore = useCallback(() => {
     if (page < totalPages && !loading) fetchPage(page + 1, true);
@@ -70,8 +65,6 @@ export function usePaginatedMemes({ category, query, tag, pageSize = 24 }: Optio
     setRefreshing(true);
     await fetchPage(1, false);
   }, [fetchPage]);
-
-  loadRef.current = loadMore;
 
   return { memes, loading, refreshing, error, hasMore: page < totalPages, loadMore, refresh };
 }
