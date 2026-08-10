@@ -1,0 +1,46 @@
+name: Deploy MemeHub
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build web app
+        run: npm run build
+        env:
+          EXPO_PUBLIC_API_URL: http://123.56.254.175
+
+      - name: Deploy frontend to server
+        uses: easingthemes/ssh-deploy@v5.1.0
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rlgoDzvc -i --delete"
+          SOURCE: "app/dist/"
+          REMOTE_HOST: "123.56.254.175"
+          REMOTE_USER: "root"
+          TARGET: "/clouddream/www/MemeHub"
+
+      - name: Deploy server code and restart
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 123.56.254.175 >> ~/.ssh/known_hosts 2>/dev/null
+          tar --exclude=node_modules --exclude=data --exclude=uploads --exclude=.git -C server -cf - . | ssh -i ~/.ssh/deploy_key root@123.56.254.175 "tar -C /clouddream/MemeHub/server -xf - && docker restart meme-server"
+          echo "server deployed and restarted"
