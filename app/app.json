@@ -38,7 +38,7 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true,
-      "baseUrl": "/web/MemeHub/"
+      "baseUrl": "/MemeHub/"
     }
   }
 }
