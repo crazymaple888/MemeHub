@@ -10,6 +10,7 @@ import {
 import { useRouter } from "expo-router";
 
 import MemeCard from "./MemeCard";
+import { Colors, Spacing } from "@/constants/theme";
 import type { Meme } from "@/lib/types";
 
 interface Props {
@@ -35,8 +36,8 @@ function MemeGrid({
   const router = useRouter();
 
   const columnCount = width >= 1200 ? 6 : width >= 768 ? 4 : 2;
-  const gutter = 8;
-  const colW = (width - 48 - gutter * (columnCount - 1)) / columnCount;
+  const gutter = Spacing.three;
+  const colW = (width - Spacing.four * 2 - gutter * (columnCount - 1)) / columnCount;
 
   const openMeme = useCallback(
     (meme: Meme) => router.push(`/meme/${meme.id}`),
@@ -75,7 +76,7 @@ function MemeGrid({
       ListEmptyComponent={
         loading ? (
           <View style={styles.center}>
-            <ActivityIndicator color="#4F7CFF" size="large" />
+            <ActivityIndicator color={Colors.light.primary} size="large" />
           </View>
         ) : (
           <View style={styles.center}>
@@ -86,7 +87,7 @@ function MemeGrid({
       ListFooterComponent={
         loading && memes.length > 0 ? (
           <View style={styles.footer}>
-            <ActivityIndicator color="#4F7CFF" />
+            <ActivityIndicator color={Colors.light.primary} />
           </View>
         ) : null
       }
@@ -96,18 +97,18 @@ function MemeGrid({
 
 const styles = StyleSheet.create({
   row: {
-    gap: 8,
+    gap: Spacing.three,
   },
   content: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: Spacing.four,
+    paddingBottom: Spacing.five,
   },
   center: {
     paddingVertical: 60,
     alignItems: "center",
   },
   empty: {
-    color: "#999",
+    color: Colors.light.textMuted,
     fontSize: 14,
   },
   footer: {

@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
@@ -16,8 +17,9 @@ import {
 } from "react-native";
 
 import { api } from "@/lib/api";
+import { Colors, Radii } from "@/constants/theme";
 
-export default function UploadScreen() {
+export default function UploadForm() {
   const router = useRouter();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -124,52 +126,66 @@ export default function UploadScreen() {
       </Pressable>
 
       <Text style={styles.label}>标题</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="表情包的名称（选填）"
-        placeholderTextColor="#999"
-        value={title}
-        onChangeText={setTitle}
-      />
+      <View style={styles.inputWrap}>
+        <TextInput
+          style={styles.input}
+          placeholder="表情包的名称（选填）"
+          placeholderTextColor={Colors.light.textMuted}
+          value={title}
+          onChangeText={setTitle}
+        />
+      </View>
 
       <Text style={styles.label}>分类 *</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="例如：搞笑 / 可爱 / 熊猫头..."
-        placeholderTextColor="#999"
-        value={category}
-        onChangeText={setCategory}
-      />
+      <View style={styles.inputWrap}>
+        <TextInput
+          style={styles.input}
+          placeholder="例如：搞笑 / 可爱 / 熊猫头..."
+          placeholderTextColor={Colors.light.textMuted}
+          value={category}
+          onChangeText={setCategory}
+        />
+      </View>
 
       <Text style={styles.label}>标签</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="用逗号分隔，例如：开心,可爱,上班"
-        placeholderTextColor="#999"
-        value={tags}
-        onChangeText={setTags}
-      />
+      <View style={styles.inputWrap}>
+        <TextInput
+          style={styles.input}
+          placeholder="用逗号分隔，例如：开心,可爱,上班"
+          placeholderTextColor={Colors.light.textMuted}
+          value={tags}
+          onChangeText={setTags}
+        />
+      </View>
 
       <Text style={styles.label}>描述</Text>
-      <TextInput
-        style={[styles.input, styles.multiline]}
-        placeholder="一句话描述这个表情包的场景（选填）"
-        placeholderTextColor="#999"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-        numberOfLines={3}
-      />
+      <View style={[styles.inputWrap, styles.multilineWrap]}>
+        <TextInput
+          style={[styles.input, styles.multiline]}
+          placeholder="一句话描述这个表情包的场景（选填）"
+          placeholderTextColor={Colors.light.textMuted}
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          numberOfLines={3}
+        />
+      </View>
 
       <Pressable
-        style={[styles.submit, submitting && styles.submitDisabled]}
         onPress={submit}
-        disabled={submitting}>
-        {submitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.submitText}>发布表情包</Text>
-        )}
+        disabled={submitting}
+        style={styles.submitWrap}>
+        <LinearGradient
+          colors={Colors.light.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.submit, submitting && styles.submitDisabled]}>
+          {submitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.submitText}>发布表情包</Text>
+          )}
+        </LinearGradient>
       </Pressable>
     </ScrollView>
   );
@@ -178,7 +194,7 @@ export default function UploadScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
   },
   content: {
     padding: 16,
@@ -186,10 +202,10 @@ const styles = StyleSheet.create({
   },
   picker: {
     height: 220,
-    borderRadius: 16,
-    backgroundColor: "#f7f8fa",
+    borderRadius: Radii.lg,
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: "#e5e6e8",
+    borderColor: Colors.light.line,
     borderStyle: "dashed",
     justifyContent: "center",
     alignItems: "center",
@@ -201,18 +217,18 @@ const styles = StyleSheet.create({
   },
   pickerPlus: {
     fontSize: 40,
-    color: "#bbb",
+    color: Colors.light.textMuted,
     lineHeight: 48,
   },
   pickerText: {
     marginTop: 8,
     fontSize: 14,
-    color: "#666",
+    color: Colors.light.textSecondary,
   },
   pickerHint: {
     marginTop: 4,
     fontSize: 12,
-    color: "#aaa",
+    color: Colors.light.textMuted,
   },
   preview: {
     width: "100%",
@@ -220,30 +236,37 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: "#666",
+    color: Colors.light.textSecondary,
     marginBottom: 6,
     marginTop: 4,
   },
-  input: {
+  inputWrap: {
     borderWidth: 1,
-    borderColor: "#e5e6e8",
-    borderRadius: 10,
+    borderColor: Colors.light.line,
+    borderRadius: Radii.md,
+    backgroundColor: Colors.light.surface,
+    marginBottom: 16,
+  },
+  input: {
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: "#333",
-    marginBottom: 16,
-    backgroundColor: "#fff",
+    color: Colors.light.text,
+  },
+  multilineWrap: {
+    minHeight: 70,
   },
   multiline: {
-    minHeight: 70,
+    minHeight: 68,
     textAlignVertical: "top",
   },
-  submit: {
+  submitWrap: {
     marginTop: 8,
+    borderRadius: Radii.pill,
+  },
+  submit: {
     height: 48,
-    borderRadius: 24,
-    backgroundColor: "#4F7CFF",
+    borderRadius: Radii.pill,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -253,6 +276,6 @@ const styles = StyleSheet.create({
   submitText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
   },
 });

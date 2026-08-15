@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
+import { Colors, Radii, Shadows } from "@/constants/theme";
 import { imgSource, type Meme } from "@/lib/types";
 
 interface Props {
@@ -23,6 +24,7 @@ function MemeCard({ meme, onPress, width, columnCount = 3 }: Props) {
       style={({ pressed }) => [
         styles.card,
         { width: cardW },
+        Shadows.card,
         pressed && styles.pressed,
       ]}>
       <View style={styles.imageWrap}>
@@ -48,29 +50,33 @@ function MemeCard({ meme, onPress, width, columnCount = 3 }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 12,
+    marginBottom: 16,
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radii.lg,
+    padding: 8,
   },
   pressed: {
-    opacity: 0.8,
+    opacity: 0.85,
+    backgroundColor: Colors.light.surfaceHover,
   },
   imageWrap: {
-    borderRadius: 12,
+    borderRadius: Radii.md,
     overflow: "hidden",
-    backgroundColor: "#f2f3f5",
+    backgroundColor: "#0F1118",
   },
   image: {
-    borderRadius: 12,
+    borderRadius: Radii.md,
   },
   title: {
-    marginTop: 6,
+    marginTop: 8,
     fontSize: 12,
-    color: "#333",
+    color: Colors.light.text,
     lineHeight: 16,
   },
   cat: {
-    marginTop: 2,
+    marginTop: 3,
     fontSize: 11,
-    color: "#999",
+    color: Colors.light.textMuted,
   },
 });
 

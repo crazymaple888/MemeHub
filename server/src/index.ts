@@ -5,6 +5,8 @@ import { dirname, join } from "node:path";
 import { memesRouter } from "./routes/memes.js";
 import { categoriesRouter } from "./routes/categories.js";
 import { uploadRouter, uploadsDir } from "./routes/upload.js";
+import { authRouter } from "./routes/auth.js";
+import { adminRouter } from "./routes/admin.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -22,6 +24,8 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/memes", memesRouter);
 app.use("/api/categories", categoriesRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/admin", adminRouter);
 
 app.listen(PORT, () => {
   console.log(`[meme-server] listening on http://localhost:${PORT}`);

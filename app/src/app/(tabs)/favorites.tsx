@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import MemeGrid from "@/components/MemeGrid";
+import { Colors } from "@/constants/theme";
 import { api } from "@/lib/api";
 import { getFavorites } from "@/lib/favorites";
 import type { Meme } from "@/lib/types";
@@ -58,12 +59,12 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 12,
     fontSize: 14,
-    color: "#666",
+    color: Colors.light.textSecondary,
   },
 });

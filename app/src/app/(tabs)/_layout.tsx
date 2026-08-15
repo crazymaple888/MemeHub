@@ -11,11 +11,15 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#4F7CFF",
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.text,
-        tabBarStyle: { backgroundColor: colors.background },
+        headerShadowVisible: false,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.line,
+        },
       }}>
       <Tabs.Screen
         name="index"
@@ -60,13 +64,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="upload"
+        name="me"
         options={{
-          title: "上传",
-          tabBarLabel: "上传",
+          title: "我的",
+          tabBarLabel: "我的",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "cloud-upload" : "cloud-upload-outline"}
+              name={focused ? "person" : "person-outline"}
               size={size}
               color={color}
             />

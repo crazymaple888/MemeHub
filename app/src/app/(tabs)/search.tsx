@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
@@ -9,6 +10,7 @@ import {
 } from "react-native";
 
 import MemeGrid from "@/components/MemeGrid";
+import { Colors, Radii } from "@/constants/theme";
 import { usePaginatedMemes } from "@/hooks/use-paginated-memes";
 
 export default function SearchScreen() {
@@ -47,17 +49,25 @@ export default function SearchScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.searchBar}>
-        <TextInput
-          style={styles.input}
-          placeholder="搜索表情包名称 / 描述 / 情绪..."
-          placeholderTextColor="#999"
-          value={input}
-          onChangeText={setInput}
-          returnKeyType="search"
-          onSubmitEditing={submit}
-        />
-        <Pressable style={styles.btn} onPress={submit}>
-          <Text style={styles.btnText}>搜索</Text>
+        <View style={styles.inputWrap}>
+          <TextInput
+            style={styles.input}
+            placeholder="搜索表情包名称 / 描述 / 情绪..."
+            placeholderTextColor={Colors.light.textMuted}
+            value={input}
+            onChangeText={setInput}
+            returnKeyType="search"
+            onSubmitEditing={submit}
+          />
+        </View>
+        <Pressable onPress={submit} style={styles.btnWrap}>
+          <LinearGradient
+            colors={Colors.light.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.btn}>
+            <Text style={styles.btnText}>搜索</Text>
+          </LinearGradient>
         </Pressable>
         {(query || tag) ? (
           <Pressable style={styles.clearBtn} onPress={clear}>
@@ -92,7 +102,7 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
   },
   searchBar: {
     flexDirection: "row",
@@ -100,39 +110,47 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 8,
   },
+  inputWrap: {
+    flex: 1,
+    height: 42,
+    borderRadius: Radii.pill,
+    backgroundColor: Colors.light.surface,
+    borderWidth: 1,
+    borderColor: Colors.light.line,
+    justifyContent: "center",
+  },
   input: {
     flex: 1,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#f2f3f5",
     paddingHorizontal: 16,
     fontSize: 14,
-    color: "#333",
+    color: Colors.light.text,
+  },
+  btnWrap: {
+    borderRadius: Radii.pill,
   },
   btn: {
-    paddingHorizontal: 16,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#4F7CFF",
+    paddingHorizontal: 18,
+    height: 42,
+    borderRadius: Radii.pill,
     justifyContent: "center",
   },
   btnText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   clearBtn: {
     paddingHorizontal: 8,
     justifyContent: "center",
   },
   clearText: {
-    color: "#999",
+    color: Colors.light.textMuted,
     fontSize: 13,
   },
   hint: {
     paddingHorizontal: 16,
     paddingBottom: 8,
     fontSize: 12,
-    color: "#666",
+    color: Colors.light.textSecondary,
   },
 });

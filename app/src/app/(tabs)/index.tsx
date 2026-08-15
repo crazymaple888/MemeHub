@@ -1,9 +1,11 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import MemeGrid from "@/components/MemeGrid";
+import { Colors, Radii } from "@/constants/theme";
 import { usePaginatedMemes } from "@/hooks/use-paginated-memes";
 import { api } from "@/lib/api";
 import type { Category } from "@/lib/types";
@@ -11,6 +13,7 @@ import type { Category } from "@/lib/types";
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [category, setCategory] = useState<string>("all");
+  const colors = Colors.light;
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -42,11 +45,26 @@ export default function HomeScreen() {
               <Pressable
                 key={c.slug}
                 onPress={() => onSelect(c.slug)}
-                style={[styles.chip, active && styles.chipActive]}>
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                  {c.name}
-                  {c.count > 0 ? ` (${c.count})` : ""}
-                </Text>
+                style={styles.chipWrap}>
+                {active ? (
+                  <LinearGradient
+                    colors={colors.gradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.chipActive}>
+                    <Text style={styles.chipTextActive}>
+                      {c.name}
+                      {c.count > 0 ? ` ${c.count}` : ""}
+                    </Text>
+                  </LinearGradient>
+                ) : (
+                  <View style={styles.chip}>
+                    <Text style={styles.chipText}>
+                      {c.name}
+                      {c.count > 0 ? ` ${c.count}` : ""}
+                    </Text>
+                  </View>
+                )}
               </Pressable>
             );
           })}
@@ -69,33 +87,41 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
   },
   catWrap: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#eee",
-    paddingBottom: 8,
+    borderBottomColor: Colors.light.line,
+    paddingBottom: 10,
   },
   catContent: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     gap: 8,
+  },
+  chipWrap: {
+    borderRadius: Radii.pill,
   },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 18,
-    backgroundColor: "#f2f3f5",
+    borderRadius: Radii.pill,
+    backgroundColor: Colors.light.surface,
+    borderWidth: 1,
+    borderColor: Colors.light.line,
   },
   chipActive: {
-    backgroundColor: "#4F7CFF",
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: Radii.pill,
   },
   chipText: {
     fontSize: 13,
-    color: "#333",
+    color: Colors.light.textSecondary,
   },
   chipTextActive: {
+    fontSize: 13,
     color: "#fff",
-    fontWeight: "600",
+    fontWeight: "700",
   },
 });

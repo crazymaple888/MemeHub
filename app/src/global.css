@@ -6,4 +6,13 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
+
+  /* MemeHub 暗色霓虹画廊 */
+  --color-bg: #0b0d12;
+  --color-surface: #141720;
+  --color-primary: #8b5cf6;
+  --color-secondary: #22d3ee;
+  --color-text: #f1f5f9;
+  color-scheme: dark;
+  background-color: var(--color-bg);
 }

@@ -35,11 +35,21 @@ db.exec(`
     height      INTEGER,
     size        INTEGER,
     source      TEXT NOT NULL DEFAULT 'seed',
+    user_id     INTEGER REFERENCES users(id),
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE INDEX IF NOT EXISTS idx_memes_category ON memes(category_id);
   CREATE INDEX IF NOT EXISTS idx_memes_created ON memes(created_at DESC);
+
+  CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'pending',
+    token         TEXT,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 // 迁移：为热链模式添加 image_url 列（旧库无此列时；新建库已包含）
@@ -48,6 +58,10 @@ const cols = db.prepare("PRAGMA table_info(memes)").all() as {
 }[];
 if (!cols.some((c) => c.name === "image_url")) {
   db.exec("ALTER TABLE memes ADD COLUMN image_url TEXT");
+}
+// 迁移：记录上传者
+if (!cols.some((c) => c.name === "user_id")) {
+  db.exec("ALTER TABLE memes ADD COLUMN user_id INTEGER REFERENCES users(id)");
 }
 
 export interface CategoryRow {
@@ -74,6 +88,15 @@ export interface MemeRow {
   height: number | null;
   size: number | null;
   source: string;
+  created_at: string;
+}
+
+export interface UserRow {
+  id: number;
+  username: string;
+  password_hash: string;
+  status: "pending" | "approved" | "rejected";
+  token: string | null;
   created_at: string;
 }
 

@@ -7,6 +7,7 @@ import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import db from "../db.js";
+import { findUserByToken } from "./auth.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const uploadsDir = join(__dirname, "..", "..", "uploads");
@@ -35,6 +36,19 @@ const ALLOWED_EXT = new Set([".gif", ".png", ".jpg", ".jpeg", ".webp"]);
 export const uploadRouter = Router();
 
 uploadRouter.post("/", upload.single("file"), async (req, res) => {
+  // 鉴权：需要已批准上传权限的用户
+  const auth = req.headers.authorization || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const user = findUserByToken(token);
+  if (!user) {
+    res.status(401).json({ error: "请先登录" });
+    return;
+  }
+  if (user.status !== "approved") {
+    res.status(403).json({ error: "上传权限未开通，请等待管理员审核" });
+    return;
+  }
+
   const file = req.file;
   if (!file) {
     res.status(400).json({ error: "缺少文件字段 file" });
@@ -115,6 +129,9 @@ uploadRouter.post("/", upload.single("file"), async (req, res) => {
         meta.height ?? null,
         file.size
       );
+
+    // 记录上传用户
+    db.prepare("UPDATE memes SET user_id = ? WHERE id = ?").run(user.id, Number(info.lastInsertRowid));
 
     res.status(201).json({ id: Number(info.lastInsertRowid), thumb: thumbPath });
   } catch (err: any) {

@@ -1,3 +1,5 @@
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { api } from "@/lib/api";
+import { Colors, Radii, Shadows } from "@/constants/theme";
 import { downloadMeme } from "@/lib/download";
 import { toggleFavorite, isFavorite } from "@/lib/favorites";
 import { imgSource } from "@/lib/types";
@@ -62,7 +65,7 @@ export default function MemeDetailScreen() {
   if (isLoading) {
     return (
       <View style={[styles.center, { paddingTop: insets.top }]}>
-        <ActivityIndicator color="#4F7CFF" size="large" />
+        <ActivityIndicator color={Colors.light.primary} size="large" />
       </View>
     );
   }
@@ -78,13 +81,15 @@ export default function MemeDetailScreen() {
   return (
     <View style={styles.container}>
       <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backText}>‹ 返回</Text>
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => [styles.backBtn, pressed && styles.backBtnPressed]}>
+          <Ionicons name="chevron-back" size={22} color={Colors.light.text} />
         </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.imageWrap}>
+        <View style={[styles.imageWrap, Shadows.card]}>
           <Image
             source={imgSource(meme)}
             style={styles.image}
@@ -127,14 +132,20 @@ export default function MemeDetailScreen() {
           </Text>
         </Pressable>
         <Pressable
-          style={[styles.actionBtn, styles.downloadBtn]}
+          style={styles.downloadWrap}
           onPress={onDownload}
           disabled={downloading}>
-          {downloading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.actionText}>下载 / 保存</Text>
-          )}
+          <LinearGradient
+            colors={Colors.light.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.downloadBtn}>
+            {downloading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.downloadText}>下载 / 保存</Text>
+            )}
+          </LinearGradient>
         </Pressable>
       </View>
     </View>
@@ -144,19 +155,24 @@ export default function MemeDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
   },
   topBar: {
     paddingHorizontal: 12,
     paddingBottom: 4,
   },
   backBtn: {
-    paddingVertical: 6,
-    paddingRight: 12,
+    width: 40,
+    height: 40,
+    borderRadius: Radii.pill,
+    backgroundColor: Colors.light.surface,
+    borderWidth: 1,
+    borderColor: Colors.light.line,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  backText: {
-    fontSize: 16,
-    color: "#4F7CFF",
+  backBtnPressed: {
+    backgroundColor: Colors.light.surfaceHover,
   },
   center: {
     flex: 1,
@@ -164,7 +180,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   errorText: {
-    color: "#999",
+    color: Colors.light.textMuted,
     fontSize: 15,
   },
   content: {
@@ -172,9 +188,9 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   imageWrap: {
-    borderRadius: 16,
+    borderRadius: Radii.lg,
     overflow: "hidden",
-    backgroundColor: "#f7f8fa",
+    backgroundColor: "#0F1118",
     justifyContent: "center",
     alignItems: "center",
     minHeight: 300,
@@ -189,18 +205,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: Colors.light.text,
     lineHeight: 26,
   },
   category: {
     marginTop: 6,
     fontSize: 13,
-    color: "#4F7CFF",
+    color: Colors.light.secondary,
   },
   meta: {
     marginTop: 8,
     fontSize: 13,
-    color: "#888",
+    color: Colors.light.textMuted,
     lineHeight: 20,
   },
   tags: {
@@ -210,14 +226,16 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   tag: {
-    backgroundColor: "#f2f3f5",
-    borderRadius: 14,
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radii.pill,
     paddingHorizontal: 10,
     paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: Colors.light.line,
   },
   tagText: {
     fontSize: 12,
-    color: "#555",
+    color: Colors.light.textSecondary,
   },
   actionBar: {
     position: "absolute",
@@ -228,30 +246,46 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#eee",
+    borderTopColor: Colors.light.line,
   },
   actionBtn: {
     flex: 1,
     height: 46,
-    borderRadius: 23,
-    backgroundColor: "#f2f3f5",
+    borderRadius: Radii.pill,
+    backgroundColor: Colors.light.background,
+    borderWidth: 1,
+    borderColor: Colors.light.line,
     justifyContent: "center",
     alignItems: "center",
   },
   actionBtnActive: {
-    backgroundColor: "#ffe9ec",
+    backgroundColor: "#241A2E",
+    borderColor: Colors.light.favorite,
+  },
+  downloadWrap: {
+    flex: 1,
+    borderRadius: Radii.pill,
   },
   downloadBtn: {
-    backgroundColor: "#4F7CFF",
+    flex: 1,
+    height: 46,
+    borderRadius: Radii.pill,
+    justifyContent: "center",
+    alignItems: "center",
   },
   actionText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#333",
+    color: Colors.light.textSecondary,
   },
   actionTextActive: {
-    color: "#e5484d",
+    color: Colors.light.favorite,
+  },
+  downloadText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
   },
 });
